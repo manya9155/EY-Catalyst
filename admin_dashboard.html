@@ -1,0 +1,384 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Admin Dashboard</title>
+</head>
+<body>
+    <script>
+        if (!localStorage.getItem("token") || localStorage.getItem("role") !== "admin") {
+            alert("Unauthorized access! Redirecting to login.");
+            window.location.href = "login.html";
+        }
+    </script>
+    
+    <h1>Welcome, Admin</h1>
+
+    <!-- Create Dropdown -->
+    <label for="create">Create</label>
+    <select id="create" onchange="showCreateForm()">
+        <option value="">Select an option</option>
+        <option value="dept">Create Department</option>
+        <option value="busunit">Create Business Unit</option>
+        <option value="subfn">Create Sub Function</option>
+        <option value="vendor">Create Vendor</option>
+    </select>
+
+    <br><br><br>
+
+    <!-- Manage Dropdown -->
+    <label for="manage">Manage</label>
+    <select id="manage" onchange="showManageForm()">
+        <option value="">Select an option</option>
+        <option value="deptman">Manage Department</option>
+        <option value="busunitman">Manage Business Unit</option>
+        <option value="subfnman">Manage Sub Function</option>
+        <option value="vendorman">Manage Vendor</option>
+    </select>
+
+    <br><br><br>
+
+    <!-- Forms Section -->
+    
+    <!-- Create Department Form -->
+    <div id="createDeptForm" style="display: none;">
+        <h3>Create Department</h3>
+        <input type="text" id="deptName" placeholder="Enter Department Name">
+        <button onclick="createDepartment()">Create</button>
+    </div>
+
+    <!-- Create Business Unit Form -->
+    <div id="createBusUnitForm" style="display: none;">
+        <h3>Create Business Unit</h3>
+        <input type="text" id="busUnitName" placeholder="Enter Business Unit Name">
+        <input type="number" id="targetSales" placeholder="Target Sales">
+        <input type="text" id="timePeriod" placeholder="Time Period">
+        <button onclick="createBusinessUnit()">Create</button>
+    </div>
+
+    <!-- Create Sub Function Form -->
+    <div id="createSubFnForm" style="display: none;">
+        <h3>Create Sub Function</h3>
+        <input type="text" id="subFnName" placeholder="Enter Sub Function Name">
+        <input type="text" id="problemStatement" placeholder="Problem Statement">
+        <button onclick="createSubFunction()">Create</button>
+    </div>
+
+    <!-- Create Vendor Form -->
+    <div id="createVendorForm" style="display: none;">
+        <h3>Create Vendor</h3>
+        <input type="text" id="vendorName" placeholder="Vendor Name">
+        <input type="text" id="vendorProduct" placeholder="Product">
+        <button onclick="createVendor()">Create</button>
+    </div>
+
+    <!-- Manage Department Form -->
+    <div id="manageDeptForm">
+        <h3>Manage Department</h3>
+        <label for="departName">Department Name:</label>
+        <input type="text" id="departName"  placeholder="Enter Department Name">
+        <label for="username">Employee Username:</label>
+        <input type="text" id="username" placeholder="Enter Employee Username">
+        <button onclick="addEmployeeToDept()">Add Employee</button>
+        <button onclick="removeEmployeeFromDept()">Remove Employee</button>
+    </div>
+
+    <div id="manageSubfunForm">
+        <h3>Manage Subfunctions</h3>
+        <input type="text" id="subFunctionName" placeholder="Enter Subfunction Name">
+        <input type="text" id="newProblemStatement" placeholder="Enter New Problem Statement">
+        <button onclick="updateSubFunction()">Update</button>
+        <button onclick="deleteSubFunction()">Delete</button>
+    </div>
+
+    <div id="manageBusunitForm">
+        <h3>Manage Business Units</h3>
+        <input type="text" id="businessUnitName" placeholder="Enter Business Unit Name">
+        <input type="number" id="targetSalesUpdate" placeholder="New Target Sales">
+        <input type="text" id="timePeriodUpdate" placeholder="New Time Period">
+        <button onclick="updateBusinessUnit()">Update</button>
+        <button onclick="deleteBusinessUnit()">Delete</button>
+    </div>
+
+    <div id="manageVendorForm">
+        <h3>Manage Vendors</h3>
+        <input type="text" id="vendoringName" placeholder="Enter Vendor Name">
+        <input type="text" id="vendorProductUpdate" placeholder="New Product">
+        <button onclick="updateVendor()">Update</button>
+        <button onclick="deleteVendor()">Delete</button>
+    </div>
+
+    <script>
+        function showCreateForm() {
+            // Hide all create forms initially
+            document.getElementById("createDeptForm").style.display = "none";
+            document.getElementById("createBusUnitForm").style.display = "none";
+            document.getElementById("createSubFnForm").style.display = "none";
+            document.getElementById("createVendorForm").style.display = "none";
+
+            // Show the selected form
+            const createOption = document.getElementById("create").value;
+            if (createOption === "dept") document.getElementById("createDeptForm").style.display = "block";
+            if (createOption === "busunit") document.getElementById("createBusUnitForm").style.display = "block";
+            if (createOption === "subfn") document.getElementById("createSubFnForm").style.display = "block";
+            if (createOption === "vendor") document.getElementById("createVendorForm").style.display = "block";
+        }
+
+        function showManageForm() {
+            // Hide all manage forms initially
+            document.getElementById("manageDeptForm").style.display = "none";
+            document.getElementById("manageSubfunForm").style.display = "none";
+            document.getElementById("manageBusunitForm").style.display = "none";
+            document.getElementById("manageVendorForm").style.display = "none";
+
+            // Show the selected form
+            const manageOption = document.getElementById("manage").value;
+            if (manageOption === "deptman") document.getElementById("manageDeptForm").style.display = "block";
+            if (manageOption === "busunitman") document.getElementById("manageBusunitForm").style.display = "block";
+            if (manageOption === "subfnman") document.getElementById("manageSubfunForm").style.display = "block";
+            if (manageOption === "vendorman") document.getElementById("manageVendorForm").style.display = "block";
+        }
+
+        async function createDepartment() {
+            const name = document.getElementById("deptName").value;
+            if (!name) {
+                alert("Please enter a department name.");
+                return;
+            }
+
+            const response = await fetch('http://localhost:5000/departments', {
+                method: 'POST',
+                headers: { 'Content-Type': 'application/json' },
+                body: JSON.stringify({ name, employeeIds: [] })
+            });
+
+            const data = await response.json();
+            alert(data.message);
+        }
+
+        async function createBusinessUnit() {
+            const name = document.getElementById("busUnitName").value;
+            const targetSales = document.getElementById("targetSales").value;
+            const timePeriod = document.getElementById("timePeriod").value;
+
+            if (!name || !targetSales || !timePeriod) {
+                alert("Please fill in all fields.");
+                return;
+            }
+
+            const response = await fetch('http://localhost:5000/business-units', {
+                method: 'POST',
+                headers: { 'Content-Type': 'application/json' },
+                body: JSON.stringify({ name, targetSales, timePeriod })
+            });
+
+            const data = await response.json();
+            alert(data.message);
+        }
+
+        async function createSubFunction() {
+            const name = document.getElementById("subFnName").value;
+            const problemStatement = document.getElementById("problemStatement").value;
+
+            if (!name || !problemStatement) {
+                alert("Please fill in all fields.");
+                return;
+            }
+
+            const response = await fetch('http://localhost:5000/subfunctions', {
+                method: 'POST',
+                headers: { 'Content-Type': 'application/json' },
+                body: JSON.stringify({ name, problemStatement })
+            });
+
+            const data = await response.json();
+            alert(data.message);
+        }
+
+        async function createVendor() {
+            const name = document.getElementById("vendorName").value;
+            const product = document.getElementById("vendorProduct").value;
+
+            if (!name || !product) {
+                alert("Please fill in all fields.");
+                return;
+            }
+
+            const response = await fetch('http://localhost:5000/vendors', {
+                method: 'POST',
+                headers: { 'Content-Type': 'application/json' },
+                body: JSON.stringify({ name, product })
+            });
+
+            const data = await response.json();
+            alert(data.message);
+        }
+
+    
+        async function addEmployeeToDept() {
+
+            const deptInput = document.getElementById("departName");
+            const usernameInput = document.getElementById("username");
+
+            if (!deptInput || !usernameInput) {
+                return;
+            }
+
+            const departName = deptInput.value.trim();  // Trim spaces just in case
+            const username = usernameInput.value.trim();
+
+            console.log(" Department Name:", departName);
+            console.log("Employee Username:", username);
+
+            if (!departName) {
+                alert("Please enter a department name.");
+                return;
+            }
+
+            const response = await fetch(`http://localhost:5000/departments/${departName}/add-employee`, {
+                method: 'PUT',
+                headers: { 'Content-Type': 'application/json' },
+                body: JSON.stringify({ username })
+            });
+
+            const data = await response.json();
+            alert(data.message);
+        }
+
+
+
+        async function removeEmployeeFromDept() {
+            const departName = document.getElementById("departName").value;
+            const username = document.getElementById("username").value;
+
+            if (!departName || !username) {
+                alert("Please enter both department name and employee username.");
+                return;
+            }
+
+            const response = await fetch(`http://localhost:5000/departments/${departName}/remove-employee`, {
+                method: 'PUT',
+                headers: { 'Content-Type': 'application/json' },
+                body: JSON.stringify({ username })
+            });
+
+            const data = await response.json();
+            alert(data.message);
+    }
+
+    async function updateSubFunction() {
+    const name = document.getElementById("subFunctionName").value;
+    const problemStatement = document.getElementById("newProblemStatement").value;
+
+    if (!name || !problemStatement) {
+        alert("Please enter both Subfunction Name and new problem statement.");
+        return;
+    }
+
+    const response = await fetch(`http://localhost:5000/subfunctions/${name}`, {
+        method: 'PUT',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ problemStatement })
+    });
+
+    const data = await response.json();
+    alert(data.message);
+}
+
+async function deleteSubFunction() {
+    const name = document.getElementById("subFunctionName").value;
+
+    if (!name) {
+        alert("Please enter Subfunction Name.");
+        return;
+    }
+
+    const response = await fetch(`http://localhost:5000/subfunctions/${name}`, {
+        method: 'DELETE'
+    });
+
+    const data = await response.json();
+    alert(data.message);
+}
+async function updateBusinessUnit() {
+    const name = document.getElementById("businessUnitName").value;
+    const targetSales = document.getElementById("targetSalesUpdate").value;
+    const timePeriod = document.getElementById("timePeriodUpdate").value;
+
+    if (!name || !targetSales || !timePeriod) {
+        alert("Please enter all fields.");
+        return;
+    }
+
+    const response = await fetch(`http://localhost:5000/business-units/${name}`, {
+        method: 'PUT',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ targetSales, timePeriod })
+    });
+
+    const data = await response.json();
+    alert(data.message);
+}
+
+async function deleteBusinessUnit() {
+    const name = document.getElementById("businessUnitName").value;
+
+    if (!name) {
+        alert("Please enter Business Unit Name.");
+        return;
+    }
+
+    const response = await fetch(`http://localhost:5000/business-units/${name}`, {
+        method: 'DELETE'
+    });
+
+    const data = await response.json();
+    alert(data.message);
+}
+
+async function updateVendor() {
+    const name = document.getElementById("vendoringName").value;
+    const product = document.getElementById("vendorProductUpdate").value;
+
+    if (!name || !product) {
+        alert("Please enter both Vendor Name and new product.");
+        return;
+    }
+
+    const response = await fetch(`http://localhost:5000/vendors/${name}`, {
+        method: 'PUT',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ product })
+    });
+
+    const data = await response.json();
+    alert(data.message);
+}
+
+async function deleteVendor() {
+    const name = document.getElementById("vendoringName").value;
+
+    if (!name) {
+        alert("Please enter Vendor Name.");
+        return;
+    }
+
+    const response = await fetch(`http://localhost:5000/vendors/${name}`, {
+        method: 'DELETE'
+    });
+
+    const data = await response.json();
+    alert(data.message);
+}
+
+</script>
+<br><br><br>
+<a href="database_visualization.html">
+    <button>View Database</button>
+</a>
+<a href="admin_visualization.html">
+    <button>View Admin Database</button>
+</a>
+</body>
+</html>

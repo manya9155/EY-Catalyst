@@ -1,0 +1,50 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Register</title>
+</head>
+<body>
+    <div class="main">
+        <h1>Employee Management</h1>
+        <h3>Enter your credentials</h3>
+
+        <form id="registerForm">
+            <input type="text" id="email" placeholder="Enter your Email-ID" required>
+            <input type="text" id="username" placeholder="Enter your Username" required>
+            <input type="password" id="password" placeholder="Enter your Password" required>
+            <select id="department">
+                <option value="Sales">Sales</option>
+                <option value="Tech">Technology</option>
+                <option value="Product">Product</option>
+            </select>
+            <button type="submit">Register</button>
+        </form>
+        
+        <script>
+        document.getElementById("registerForm").addEventListener("submit", async (e) => {
+            e.preventDefault();
+            
+            const response = await fetch('http://localhost:5000/register', {
+                method: 'POST',
+                headers: { 'Content-Type': 'application/json' },
+                body: JSON.stringify({
+                    email: document.getElementById("email").value,
+                    username: document.getElementById("username").value,
+                    password: document.getElementById("password").value,
+                    department: document.getElementById("department").value
+                })
+            });
+        
+            const data = await response.json();
+            alert(data.message);
+        
+            if (response.ok) {
+                window.location.href = "login.html"; // Redirect to login page after successful registration
+            }
+        });
+        </script>
+        
+</body>
+</html>
